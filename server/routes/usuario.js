@@ -5,12 +5,19 @@ const bcrypt = require('bcrypt');
 const _ = require('underscore');
 
 const Usuario = require('../models/usuario');
-const usuario = require('../models/usuario');
+
+const { verificaToken, verificaAdmin_Role } = require('../middlewares/autenticacion')
 
 const app = express();
 
-app.get('/usuario', (req, res)=>{
+app.get('/usuario', verificaToken ,(req, res)=>{
     // res.json('get usuario local');
+
+    // return res.json({
+    //     usuarios: req.usuario,
+    //     nombre: req.usuario.nombre,
+    //     email: req.usuario.email
+    // })
 
     let from = req.query.from || 0;
 
@@ -20,7 +27,9 @@ app.get('/usuario', (req, res)=>{
 
     to = Number(to);
 
-    Usuario.find({estado: true}, 'nombre email')
+    // Aqui se colocan los valores que se quieren ver
+
+    Usuario.find({estado: true}, 'nombre email estado role google')
            .skip(from)
            .limit(to)
            .exec((err, usuarios)=>{
@@ -43,7 +52,7 @@ app.get('/usuario', (req, res)=>{
            })
 })
 
-app.put('/usuario/:id', function(req, res){
+app.put('/usuario/:id', [verificaToken, verificaAdmin_Role], function(req, res){
 
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
@@ -72,7 +81,7 @@ app.put('/usuario/:id', function(req, res){
     
 })
 
-app.post('/usuario', (req, res)=>{
+app.post('/usuario', [verificaToken, verificaAdmin_Role] ,(req, res)=>{
     
     let body = req.body;
 
@@ -119,7 +128,7 @@ app.post('/usuario', (req, res)=>{
     
 })
 
-app.delete('/usuario/:id', (req, res)=>{
+app.delete('/usuario/:id', [verificaToken, verificaAdmin_Role],  (req, res)=>{
     // res.json('delete usuario');
     let id = req.params.id;
 
